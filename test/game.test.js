@@ -1,0 +1,10 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {Game,rotate} from '../game.js';
+test('seven-bag includes each shape once',()=>{const g=new Game();const pieces=[g.active.id,g.next.id,...Array.from({length:5},()=>g.pick().id)];assert.equal(new Set(pieces).size,7);});
+test('walls prevent moving outside board',()=>{const g=new Game();for(let i=0;i<20;i++)g.move(-1);assert.equal(g.x,0);assert.equal(g.move(-1),false);});
+test('four rotations restore a non-square piece',()=>{const m=[[1,0,0],[1,1,1]];assert.deepEqual(rotate(rotate(rotate(rotate(m)))),m);});
+test('hard drop locks piece and awards distance points',()=>{const g=new Game();const cells=g.active.matrix.flat().filter(Boolean).length;const distance=g.ghostY();g.hardDrop();assert.equal(g.board.flat().filter(Boolean).length,cells);assert.equal(g.score,distance*2);});
+test('completing a line clears it and scores 100',()=>{const g=new Game();g.board[19]=Array(10).fill(1);g.board[19][4]=0;g.active={id:0,matrix:[[1]]};g.x=4;g.y=19;g.lock();assert.equal(g.lines,1);assert.equal(g.score,100);assert.equal(g.board.flat().filter(Boolean).length,0);});
+test('blocked spawn ends game and reset restores it',()=>{const g=new Game();g.board[0]=Array(10).fill(1);g.spawn();assert.equal(g.over,true);g.reset();assert.equal(g.over,false);assert.equal(g.score,0);});
+test('level increases after ten cleared lines',()=>{const g=new Game();g.lines=9;g.board[19]=Array(10).fill(1);g.board[19][0]=0;g.active={id:0,matrix:[[1]]};g.x=0;g.y=19;g.lock();assert.equal(g.level,2);});
